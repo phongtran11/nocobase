@@ -33,3 +33,16 @@ services:
       - ./storage/db/postgres:/var/lib/postgresql/data
     networks:
       - nocobase
+  bim-backend:
+    build: 
+      dockerfile: ./../../bim-backend/Dockerfile
+    networks:
+      - nocobase
+    volumes:
+      - ./../../bim-backend:/app
+      - ./../../bim-backend/sh/entrypoint.sh:/app/sh/entrypoint.sh
+      - ./storage:/storage
+    #command: tail -f
+    entrypoint: /app/sh/entrypoint.sh
+    ports:
+      - "3000:3000"
