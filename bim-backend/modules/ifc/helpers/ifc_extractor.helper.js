@@ -1,11 +1,11 @@
-class IFCExtractorService {
+class IFCExtractorHelper {
     async extractAndInsertIfcModel(data) {
         const filePath = data?.file_model[0]?.url;
         const modelId = data?.id;
     }
 }
 
-module.exports = { IFCExtractorService }
+module.exports = { IFCExtractorHelper }
 
 // /// extractAndInsertIfcModel(data)
 // {
