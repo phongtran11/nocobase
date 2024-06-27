@@ -88,6 +88,10 @@ class IFCTilerHelper {
     // Ensure the 'output' folder exists
   }
 
+  async executeTiling() {
+    await this.geometryTiler.streamFromBuffer(this.fileArrayBuffer);
+  }
+
   // Read file into arraybuffer
   async readFile() {
     const data = await fs.readFileSync(this.fileData.path);
