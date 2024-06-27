@@ -37,7 +37,10 @@ class IFCTilerHelper {
 
   initGeometryTiler() {
     this.geometryTiler = this.components.get(OBC.IfcGeometryTiler);
-    this.initGeometryTilerSettings();
+    this.geometryTiler.settings = {
+      ...this.geometryTiler.settings,
+      ...this.geometryTilerSettings,
+    };
     this.initGeometryTilerEvents();
   }
 
