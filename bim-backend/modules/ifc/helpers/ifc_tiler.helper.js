@@ -1,18 +1,15 @@
 const OBC = require('@thatopen/components');
 const fs = require('fs');
+const path = require('path');
 
 class IFCTilerHelper {
     components = null;
     fragmentManager = null;
     geometryTilerSettings = {
-        wasm: {
-            path: "https://unpkg.com/web-ifc@0.0.53/",
-            absolute: true,
-        },
         minGeometrySize: 20,
         minAssetsSize: 1000
     }
-    fileData = {name: 'test', path: './data/01-RVT-KIEN_TRUC-NOI_THAT.ifc'}
+    fileData = {name: 'test', path: '/storage/01-RVT-KIEN_TRUC-NOI_THAT.ifc', outputDir: ''}
     fileArrayBuffer = null;
 
     /**
@@ -20,14 +17,21 @@ class IFCTilerHelper {
      * @param {*} fileData {name, path}
      */
     constructor(fileData) {
-        //this.fileData = fileData;
+        this.fileData = fileData;
+        this.initFileData();
         this.initComponents();
         this.initGeometryTiler(); 
     }
 
+    initFileData() {
+        this.fileData.outputDir = path.join('/storage/uploads/tiling', this.fileData.name);
+        if (!fs.existsSync(this.fileData.outputDir)) {
+            fs.mkdirSync(this.fileData.outputDir);
+        }
+    }
+
     initComponents() {
         this.components = new OBC.Components();
-        this.components.init();
     }
 
     initGeometryTiler() {
@@ -41,23 +45,32 @@ class IFCTilerHelper {
 
     initGeometryTilerEvents() {
         let files = []; // { name: string; bits: (Uint8Array | string)[] }[]
-        let geometriesData = {}; // OBC.StreamedGeometries
         let geometryFilesCount = 1;
 
-        this.geometryTiler.onGeometryStreamed.add((geometry) => {
+        const settings = {
+            assets: [],
+            geometries: {},
+            globalDataFileId: "ifc-processed-global",
+          };
+
+        this.geometryTiler.onGeometryStreamed.add(async (geometry) => {
             const { buffer, data } = geometry;
-            const bufferFileName = `${this.fileData.name}-processed-geometries-${geometryFilesCount}`;
+            const bufferFileName = `processed-geometries-${geometryFilesCount}`;
             for (const expressID in data) {
                 const value = data[expressID];
                 value.geometryFile = bufferFileName;
-                geometriesData[expressID] = value;
+                settings.geometries[expressID] = {
+                    boundingBox: data[expressID].boundingBox,
+                    hasHoles: data[expressID].hasHoles,
+                    geometryFile: bufferFileName,
+                };
             }
             files.push({ name: bufferFileName, bits: [buffer] });
             geometryFilesCount++;
 
             // Write buffer to file
-            const filePath = path.join(__dirname, 'output', bufferFileName);
-            fs.writeFile(filePath, Buffer.from(buffer), (err) => {
+            const filePath = path.join(this.fileData.outputDir, bufferFileName);
+            await fs.writeFile(filePath, Buffer.from(buffer), (err) => {
                 if (err) {
                     console.error(`Error writing file ${bufferFileName}:`, err);
                 } else {
@@ -65,16 +78,24 @@ class IFCTilerHelper {
                 }
             });
         });
+
+        this.geometryTiler.onProgress.add((progress) => {
+          
+        });
+        this.geometryTiler.onIfcLoaded.add(async (data) => {
+            const settingsFileId = "ifc-processed.json";
+            await fs.writeFile(
+              path.join(this.fileData.outputDir, settingsFileId),
+              JSON.stringify(settings),
+              (err) => {}
+            );
+          });
         // Ensure the 'output' folder exists
-        const outputFolder = path.join(__dirname, 'output');
-        if (!fs.existsSync(outputFolder)) {
-            fs.mkdirSync(outputFolder);
-        }
     }
 
     // Read file into arraybuffer
-    readFile() {
-        const data = fs.readFileSync(this.fileData.name);
+    async readFile() {
+        const data = await fs.readFileSync(this.fileData.path);
         const buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
         this.fileArrayBuffer = new Uint8Array(buffer);
     }
@@ -84,7 +105,7 @@ class IFCTilerHelper {
     }
 
     async tiling() {
-        this.readFile();
+        await this.readFile();
         await this.executeTiling();
     }
 }
