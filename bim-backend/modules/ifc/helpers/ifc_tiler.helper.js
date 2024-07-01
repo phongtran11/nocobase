@@ -1,7 +1,7 @@
 const OBC = require('@thatopen/components');
-const WEBIFC = require('web-ifc');
 const fs = require('fs');
 const path = require('path');
+const logger = require('@cores/logger');
 
 class IFCTilerHelper {
   components = null;
@@ -73,9 +73,9 @@ class IFCTilerHelper {
       const filePath = path.join(this.fileData.outputDir, bufferFileName);
       await fs.writeFile(filePath, Buffer.from(buffer), (err) => {
         if (err) {
-          console.error(`Error writing file ${bufferFileName}:`, err);
+          logger.error(`Error writing file ${bufferFileName}:`, err);
         } else {
-          console.log(`File ${bufferFileName} written successfully`);
+          logger.log(`File ${bufferFileName} written successfully`);
         }
       });
     });

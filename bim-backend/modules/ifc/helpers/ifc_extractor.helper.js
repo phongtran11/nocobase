@@ -1,11 +1,126 @@
+'use strict';
+
+const WebIFC = require('web-ifc');
+const fs = require('fs');
+const logger = require('@cores/logger');
+const { BimUnitRepository } = require('./../repositories/bim_unit.repository');
+
 class IFCExtractorHelper {
-    async extractAndInsertIfcModel(data) {
-        const filePath = data?.file_model[0]?.url;
-        const modelId = data?.id;
+  ifcProps = [];
+  ctx = {
+    ifcApi: null,
+    ifcDataBuffer: null,
+    ifcModelId: null,
+    ifcPropsManager: null,
+    ifcComponents: null,
+  };
+  fileData = { name: 'test', path: '/storage/uploads/240626-IFC-P-FFS-WEBGIS.ifc', outputDir: '', modelId: 1 };
+
+  constructor(fileData) {
+    this.fileData = fileData;
+  }
+
+  async extract() {
+    // Read ifc file
+    try {
+      const file = fs.readFileSync(this.fileData.path);
+      this.ctx.ifcDataBuffer = new Uint8Array(file);
+      //
+      this.ctx.ifcApi = new WebIFC.IfcAPI();
+      await this.ctx.ifcApi.Init();
+      this.ctx.ifcModelId = this.ctx.ifcApi.OpenModel(this.ctx.ifcDataBuffer);
+      this.ctx.ifcPropsManager = new WebIFC.Properties(this.ctx.ifcApi);
+      //
+      const ifcRoot = await this.ctx.ifcPropsManager.getSpatialStructure(this.ctx.ifcModelId, true);
+      await this.readIfcUnitsAndBuildProps(ifcRoot, null);
+      logger.log('Total IFC Props: ', this.ifcProps.length);
+      logger.log('Insert IFC Unit');
+      await BimUnitRepository.clearByModelId(this.fileData.modelId);
+      await BimUnitRepository.insertBatch(this.ifcProps);
+      logger.log('Complete Insert');
+      return this;
+    } catch (ex) {
+      logger.log(ex);
+      return this;
     }
+  }
+
+  closeModel() {
+    this.ctx.ifcApi.CloseModel(this.ctx.ifcModelId);
+    return this;
+  }
+
+  readGroupPropertySets(props, propertySets) {
+    let gisCode = '';
+    let mFunction = '';
+    propertySets.forEach((prop) => {
+      const groupName = prop.Name.value;
+      props[groupName] = props[groupName] ?? {};
+      prop?.HasProperties?.forEach((single) => {
+        if (single?.Name) {
+          props[groupName][single.Name.value] = {
+            expressID: single.expressID,
+            type: single.type,
+            name: single.Name.value,
+            value: single.NominalValue.value,
+            unit: single.Unit,
+            description: single.Description,
+          };
+          if (single.Name.value == 'Code_GIS') {
+            gisCode = single.NominalValue.value;
+          }
+          if (single.Name.value == 'M_Function') {
+            mFunction = single.NominalValue.value;
+          }
+        }
+      });
+    });
+    return { gisCode, mFunction };
+  }
+
+  async readIfcUnitsAndBuildProps(root, parent) {
+    const props = {};
+    const ifcPropsManager = this.ctx.ifcPropsManager;
+    const modelID = this.ctx.ifcModelId;
+
+    let [typeprops, propsets] = await Promise.all([
+      ifcPropsManager.getTypeProperties(modelID, root.expressID, true),
+      ifcPropsManager.getPropertySets(modelID, root.expressID, true),
+    ]);
+
+    const { gisCode, mFunction } = this.readGroupPropertySets(props, propsets);
+
+    typeprops.forEach((typeprop) => {
+      this.readGroupPropertySets(props, typeprop.HasPropertySets);
+    });
+
+    const data = {
+      model_id: this.fileData.modelId,
+      express_id: root.expressID,
+      parent_express_id: parent?.expressID,
+      name: root.Name?.value,
+      ifc_type: root.type,
+      description: root.Description?.value,
+      object_type: root.ObjectType?.value,
+      properties: props,
+      class_code: gisCode,
+      m_function: mFunction,
+    };
+    this.ifcProps.push(data);
+    logger.log('Insert IFCUnit', gisCode, mFunction, data.express_id);
+
+    if (root.children && root.children.length > 0) {
+      const handlers = [];
+      for (let i = 0; i < root.children.length; i++) {
+        //await this.readIfcUnitsAndBuildProps(root.children[i], root);
+        handlers.push(this.readIfcUnitsAndBuildProps(root.children[i], root));
+      }
+      await Promise.all(handlers);
+    }
+  }
 }
 
-module.exports = { IFCExtractorHelper }
+module.exports = { IFCExtractorHelper };
 
 // /// extractAndInsertIfcModel(data)
 // {
