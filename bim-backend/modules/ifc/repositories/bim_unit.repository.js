@@ -59,7 +59,7 @@ class BimUnitRepository {
 
         const sql = `
         INSERT INTO bim_units (
-          model_id, express_id, parent_express_id, name, ifc_type, description,
+          modelid, expressId, parent_express_id, name, ifc_type, description,
           object_type, properties, class_code, m_function
         ) VALUES ${placeholders.join(', ')}`;
 

@@ -83,7 +83,10 @@ class IFCTilerHelper {
     this.geometryTiler.onProgress.add((progress) => {});
     this.geometryTiler.onIfcLoaded.add(async (data) => {
       const settingsFileId = 'ifc-processed.json';
-      await fs.writeFile(path.join(this.fileData.outputDir, settingsFileId), JSON.stringify(settings), (err) => {});
+      await Promise.all([
+        fs.writeFile(path.join(this.fileData.outputDir, settingsFileId), JSON.stringify(settings), (err) => {}),
+        fs.writeFile(path.join(this.fileData.outputDir, settings.globalDataFileId), data, (err) => {}),
+      ]);
     });
     // Ensure the 'output' folder exists
   }
