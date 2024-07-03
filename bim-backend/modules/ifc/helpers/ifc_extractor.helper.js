@@ -53,7 +53,7 @@ class IFCExtractorHelper {
   readGroupPropertySets(props, propertySets) {
     let gisCode = '';
     let mFunction = '';
-    propertySets.forEach((prop) => {
+    propertySets?.forEach((prop) => {
       const groupName = prop.Name.value;
       props[groupName] = props[groupName] ?? {};
       prop?.HasProperties?.forEach((single) => {
