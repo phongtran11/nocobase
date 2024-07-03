@@ -3,7 +3,7 @@ const { fastify } = require('@cores/global');
 class BimUnitRepository {
   static async clearByModelId(modelId) {
     return await fastify.pg.transact(async (client) => {
-      await client.query('delete from bim_units where model_id = $1', [modelId]);
+      await client.query('delete from bim_units where modelId = $1', [modelId]);
     });
   }
 
@@ -59,7 +59,7 @@ class BimUnitRepository {
 
         const sql = `
         INSERT INTO bim_units (
-          modelid, expressId, parent_express_id, name, ifc_type, description,
+          modelId, expressId, parent_express_id, name, ifc_type, description,
           object_type, properties, class_code, m_function
         ) VALUES ${placeholders.join(', ')}`;
 
