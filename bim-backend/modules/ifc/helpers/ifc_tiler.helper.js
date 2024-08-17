@@ -1,4 +1,5 @@
 const OBC = require('@thatopen/components');
+const WEBIFC = require('web-ifc');
 const fs = require('fs');
 const path = require('path');
 const logger = require('@cores/logger');
@@ -6,10 +7,6 @@ const logger = require('@cores/logger');
 class IFCTilerHelper {
   components = null;
   fragmentManager = null;
-  geometryTilerSettings = {
-    minGeometrySize: 20,
-    minAssetsSize: 1000,
-  };
   fileData = { name: 'test', path: '/storage/01-RVT-KIEN_TRUC-NOI_THAT.ifc', outputDir: '' };
   fileArrayBuffer = null;
 
@@ -25,7 +22,9 @@ class IFCTilerHelper {
   }
 
   initFileData() {
-    this.fileData.outputDir = path.join('/storage/uploads/tiling', this.fileData.name);
+    const outputDir = '/storage/uploads/tiling';
+    // const outputDir = '/Users/admin/Project/HCMGIS/bim-tiling/openbim-ifc-playground/server/storage/tiling';
+    this.fileData.outputDir = path.join(outputDir);
     if (!fs.existsSync(this.fileData.outputDir)) {
       fs.mkdirSync(this.fileData.outputDir);
     }
@@ -36,38 +35,44 @@ class IFCTilerHelper {
   }
 
   initGeometryTiler() {
-    this.geometryTiler = this.components.get(OBC.IfcGeometryTiler);
-    this.geometryTiler.settings = {
-      ...this.geometryTiler.settings,
-      ...this.geometryTilerSettings,
-    };
+    this.initGeometryTilerConfig();
     this.initGeometryTilerEvents();
   }
 
+  initGeometryTilerConfig() {
+    this.geometryTiler = new OBC.IfcGeometryTiler(new OBC.Components());
+    this.geometryTiler.settings.excludedCategories.add(WEBIFC.IFCSPACE);
+    this.geometryTiler.settings.wasm.logLevel = WEBIFC.LogLevel.LOG_LEVEL_ERROR;
+    // this.geometryTiler.settings.autoSetWasm = true; // automatically resolves wasm version from package.json
+    this.geometryTiler.settings.webIfc = {
+      // MEMORY_LIMIT: 2147483648, // default: 2GB
+      COORDINATE_TO_ORIGIN: true,
+      OPTIMIZE_PROFILES: true,
+    };
+
+    this.geometryTiler.settings.minAssetsSize = 1000;
+    this.geometryTiler.settings.minGeometrySize = 20;
+  }
+
   initGeometryTilerEvents() {
-    let files = []; // { name: string; bits: (Uint8Array | string)[] }[]
-    let geometryFilesCount = 1;
+    let globalDataFileId = `${this.fileData.name}-ifc-processed-global`;
 
     const settings = {
       assets: [],
       geometries: {},
-      globalDataFileId: 'ifc-processed-global',
+      globalDataFileId: globalDataFileId,
     };
+    let geometryFilesCount = 0;
 
-    this.geometryTiler.onGeometryStreamed.add(async (geometry) => {
-      const { buffer, data } = geometry;
-      const bufferFileName = `processed-geometries-${geometryFilesCount}`;
-      for (const expressID in data) {
-        const value = data[expressID];
-        value.geometryFile = bufferFileName;
-        settings.geometries[expressID] = {
-          boundingBox: data[expressID].boundingBox,
-          hasHoles: data[expressID].hasHoles,
+    this.geometryTiler.onGeometryStreamed.add(async ({ buffer, data }) => {
+      const bufferFileName = `${this.fileData.name}-processed-geometries-${geometryFilesCount}`;
+      for (const id in data) {
+        settings.geometries[id] = {
+          boundingBox: data[id].boundingBox,
+          hasHoles: data[id].hasHoles,
           geometryFile: bufferFileName,
         };
       }
-      files.push({ name: bufferFileName, bits: [buffer] });
-      geometryFilesCount++;
 
       // Write buffer to file
       const filePath = path.join(this.fileData.outputDir, bufferFileName);
@@ -78,14 +83,23 @@ class IFCTilerHelper {
           logger.log(`File ${bufferFileName} written successfully`);
         }
       });
+      geometryFilesCount++;
     });
 
     this.geometryTiler.onProgress.add((progress) => {});
+    this.geometryTiler.onAssetStreamed.add(async (assets) => {
+      for (const asset of assets) {
+        settings.assets.push({
+          id: asset.id,
+          geometries: asset.geometries,
+        });
+      }
+    });
     this.geometryTiler.onIfcLoaded.add(async (data) => {
-      const settingsFileId = 'ifc-processed.json';
+      const settingsFileId = `${this.fileData.name}-ifc-processed.json`;
       await Promise.all([
         fs.writeFile(path.join(this.fileData.outputDir, settingsFileId), JSON.stringify(settings), (err) => {}),
-        fs.writeFile(path.join(this.fileData.outputDir, settings.globalDataFileId), data, (err) => {}),
+        fs.writeFile(path.join(this.fileData.outputDir, settings.globalDataFileId), Buffer.from(data), (err) => {}),
       ]);
     });
     // Ensure the 'output' folder exists

@@ -68,6 +68,7 @@ class IFCExtractorHelper {
           };
           if (single.Name.value == 'Code_GIS') {
             gisCode = single.NominalValue.value;
+            mFunction = gisCode;
           }
           if (single.Name.value == 'M_Function') {
             mFunction = single.NominalValue.value;
