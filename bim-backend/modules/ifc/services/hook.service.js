@@ -14,10 +14,7 @@ class HookService {
     const ifcExtractor = new IFCExtractorHelper(fileData);
 
     // Execute props extractor
-    await Promise.all([
-      // ifcExtractor.extract(),
-      ifcTilerHelper.tiling(),
-    ]);
+    await Promise.all([ifcExtractor.extract(), ifcTilerHelper.tiling()]);
 
     return true;
   }
