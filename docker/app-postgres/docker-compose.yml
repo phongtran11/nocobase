@@ -47,5 +47,5 @@ services:
       - ./storage:/storage
     #command: tail -f
     entrypoint: /app/sh/entrypoint.sh
-    ports:
-      - "3000:3000"
+    #ports:
+    #  - "3000:3000"
