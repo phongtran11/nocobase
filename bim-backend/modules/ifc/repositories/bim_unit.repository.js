@@ -37,7 +37,7 @@ class BimUnitRepository {
             m_function,
           } = item;
 
-          const gis_code_express_id = this.findCodeGisExpressId(properties);
+          const gis_code_express_id = this.findGisCodeExpressId(properties);
 
           const startIndex = index * 10 + 1; // Adjust index for placeholders
           placeholders.push(`($${startIndex}, $${startIndex + 1}, $${startIndex + 2}, 
