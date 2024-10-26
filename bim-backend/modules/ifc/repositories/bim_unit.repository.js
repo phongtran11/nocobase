@@ -17,7 +17,7 @@ class BimUnitRepository {
         return key === 'Text';
       });
 
-      const gisCodeExpressId = gisCodeProperty?.[1]?.expressID;
+      const gisCodeExpressId = gisCodeProperty?.[1]?.CODE_GIS?.expressID;
 
       if (!gisCodeExpressId) {
         return null;
