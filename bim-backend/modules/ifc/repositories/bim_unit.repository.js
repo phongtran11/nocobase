@@ -37,6 +37,8 @@ class BimUnitRepository {
             m_function,
           } = item;
 
+          const gis_code_express_id = this.findCodeGisExpressId(properties);
+
           const startIndex = index * 10 + 1; // Adjust index for placeholders
           placeholders.push(`($${startIndex}, $${startIndex + 1}, $${startIndex + 2}, 
                               $${startIndex + 3}, $${startIndex + 4}, $${startIndex + 5}, 
@@ -54,19 +56,38 @@ class BimUnitRepository {
             properties,
             class_code,
             m_function,
+            gis_code_express_id,
           );
         });
 
         const sql = `
         INSERT INTO bim_units (
           "modelId", "expressId", parent_express_id, name, ifc_type, description,
-          object_type, properties, class_code, m_function
+          object_type, properties, class_code, m_function, gis_code_express_id
         ) VALUES ${placeholders.join(', ')}`;
 
         handlers.push(client.query(sql, values));
       }
       await Promise.all(handlers);
     });
+  }
+
+  findGisCodeExpressId(properties) {
+    const keyValueProperties = Object.entries(properties);
+
+    if (!keyValueProperties?.length) return null;
+
+    const gisCodeProperty = keyValueProperties.find(([key]) => {
+      return key === 'Text';
+    });
+
+    const gisCodeExpressId = gisCodeProperty?.[1]?.expressID;
+
+    if (!gisCodeExpressId) {
+      return null;
+    }
+
+    return gisCodeExpressId;
   }
 }
 
