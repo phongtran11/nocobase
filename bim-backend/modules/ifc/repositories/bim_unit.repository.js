@@ -8,6 +8,24 @@ class BimUnitRepository {
   }
 
   static async insertBatch(dataArray) {
+    function findGisCodeExpressId(properties) {
+      const keyValueProperties = Object.entries(properties);
+
+      if (!keyValueProperties?.length) return null;
+
+      const gisCodeProperty = keyValueProperties.find(([key]) => {
+        return key === 'Text';
+      });
+
+      const gisCodeExpressId = gisCodeProperty?.[1]?.expressID;
+
+      if (!gisCodeExpressId) {
+        return null;
+      }
+
+      return gisCodeExpressId;
+    }
+
     // Define a batch size
     const batchSize = 50;
 
@@ -37,7 +55,7 @@ class BimUnitRepository {
             m_function,
           } = item;
 
-          const gis_code_express_id = this.findGisCodeExpressId(properties);
+          const gis_code_express_id = findGisCodeExpressId(properties);
 
           const startIndex = index * 10 + 1; // Adjust index for placeholders
           placeholders.push(`($${startIndex}, $${startIndex + 1}, $${startIndex + 2}, 
@@ -70,24 +88,6 @@ class BimUnitRepository {
       }
       await Promise.all(handlers);
     });
-  }
-
-  findGisCodeExpressId(properties) {
-    const keyValueProperties = Object.entries(properties);
-
-    if (!keyValueProperties?.length) return null;
-
-    const gisCodeProperty = keyValueProperties.find(([key]) => {
-      return key === 'Text';
-    });
-
-    const gisCodeExpressId = gisCodeProperty?.[1]?.expressID;
-
-    if (!gisCodeExpressId) {
-      return null;
-    }
-
-    return gisCodeExpressId;
   }
 }
 
