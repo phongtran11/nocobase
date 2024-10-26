@@ -61,7 +61,7 @@ class BimUnitRepository {
           placeholders.push(`($${startIndex}, $${startIndex + 1}, $${startIndex + 2}, 
                               $${startIndex + 3}, $${startIndex + 4}, $${startIndex + 5}, 
                               $${startIndex + 6}, $${startIndex + 7}, $${startIndex + 8}, 
-                              $${startIndex + 9})`);
+                              $${startIndex + 9}), $${startIndex + 10}`);
 
           values.push(
             model_id,
