@@ -83,6 +83,7 @@ class BimUnitRepository {
           object_type, properties, class_code, m_function
         ) VALUES ${placeholders.join(', ')}`;
 
+        console.log(sql);
         handlers.push(client.query(sql, values));
       }
       await Promise.all(handlers);
