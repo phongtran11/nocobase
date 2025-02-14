@@ -11,7 +11,13 @@ const options = {};
 module.exports = async function (fastify, opts) {
   // Place here your custom code!
   fastify.register(require('@fastify/postgres'), {
+    name: 'BimMetro',
     connectionString: 'postgres://nocobase:nocobase@postgres/BimMetro',
+  });
+
+  fastify.register(require('@fastify/postgres'), {
+    name: 'BIM_KIEN_GIANG',
+    connectionString: 'postgres://nocobase:nocobase@postgres/BIM_KIEN_GIANG',
   });
 
   // Load Ifc module

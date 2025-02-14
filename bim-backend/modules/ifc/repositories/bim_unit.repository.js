@@ -1,13 +1,13 @@
 const { fastify } = require('@cores/global');
 
 class BimUnitRepository {
-  static async clearByModelId(modelId) {
-    return await fastify.pg.transact(async (client) => {
+  static async clearByModelId(source, modelId) {
+    return await fastify.pg[source].transact(async (client) => {
       await client.query('delete from bim_units where "modelId" = $1', [modelId]);
     });
   }
 
-  static async insertBatch(dataArray) {
+  static async insertBatch(source, dataArray) {
     function findGisCodeExpressId(properties) {
       const keyValueProperties = Object.entries(properties);
 
@@ -35,7 +35,7 @@ class BimUnitRepository {
       batches.push(dataArray.slice(i, i + batchSize));
     }
 
-    return await fastify.pg.transact(async (client) => {
+    return await fastify.pg[source].transact(async (client) => {
       const handlers = [];
       for (const batch of batches) {
         const values = [];

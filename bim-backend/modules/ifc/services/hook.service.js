@@ -15,7 +15,7 @@ class HookService {
     };
     // Execute tiling
     const ifcTilerHelper = new IFCTilerHelper(fileData);
-    const ifcExtractor = new IFCExtractorHelper(fileData);
+    const ifcExtractor = new IFCExtractorHelper(fileData, source);
 
     // Execute props extractor
     await Promise.all([ifcExtractor.extract(), ifcTilerHelper.tiling()]);

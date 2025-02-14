@@ -15,9 +15,11 @@ class IFCExtractorHelper {
     ifcComponents: null,
   };
   fileData = { name: 'test', path: '/storage/uploads/240626-IFC-P-FFS-WEBGIS.ifc', outputDir: '', modelId: 1 };
+  source = 'BimMetro';
 
-  constructor(fileData) {
+  constructor(fileData, source) {
     this.fileData = fileData;
+    this.source = source;
   }
 
   async extract() {
@@ -35,8 +37,8 @@ class IFCExtractorHelper {
       await this.readIfcUnitsAndBuildProps(ifcRoot, null);
       logger.log('Total IFC Props: ', this.ifcProps.length);
       logger.log('Insert IFC Unit');
-      await BimUnitRepository.clearByModelId(this.fileData.modelId);
-      await BimUnitRepository.insertBatch(this.ifcProps);
+      await BimUnitRepository.clearByModelId(this.source, this.fileData.modelId);
+      await BimUnitRepository.insertBatch(this.source, this.ifcProps);
       logger.log('Complete Insert');
       return this;
     } catch (ex) {
