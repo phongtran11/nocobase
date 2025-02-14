@@ -57,7 +57,7 @@ class BimUnitRepository {
 
           const gis_code_express_id = findGisCodeExpressId(properties);
 
-          const startIndex = index * 11 + 1; // Adjust index for placeholders
+          const startIndex = index * 10 + 1; // Adjust index for placeholders
           placeholders.push(`($${startIndex}, $${startIndex + 1}, $${startIndex + 2}, 
                               $${startIndex + 3}, $${startIndex + 4}, $${startIndex + 5}, 
                               $${startIndex + 6}, $${startIndex + 7}, $${startIndex + 8}, 
