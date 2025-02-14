@@ -63,8 +63,8 @@ class IFCExtractorHelper {
           props[groupName][single.Name.value] = {
             expressID: single.expressID,
             type: single.type,
-            name: single.Name.value,
-            value: single.NominalValue.value,
+            name: single.Name?.value ?? '',
+            value: single.NominalValue?.value ?? '',
             unit: single.Unit,
             description: single.Description,
           };
