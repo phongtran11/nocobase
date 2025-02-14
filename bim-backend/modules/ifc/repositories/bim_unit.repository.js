@@ -8,6 +8,24 @@ class BimUnitRepository {
   }
 
   static async insertBatch(dataArray) {
+    function findGisCodeExpressId(properties) {
+      const keyValueProperties = Object.entries(properties);
+
+      if (!keyValueProperties?.length) return null;
+
+      const gisCodeProperty = keyValueProperties.find(([key]) => {
+        return key === 'Text';
+      });
+
+      const gisCodeExpressId = gisCodeProperty?.[1]?.CODE_GIS?.expressID;
+
+      if (!gisCodeExpressId) {
+        return null;
+      }
+
+      return gisCodeExpressId;
+    }
+
     // Define a batch size
     const batchSize = 50;
 
@@ -37,11 +55,13 @@ class BimUnitRepository {
             m_function,
           } = item;
 
-          const startIndex = index * 10 + 1; // Adjust index for placeholders
+          const gis_code_express_id = findGisCodeExpressId(properties);
+
+          const startIndex = index * 11 + 1; // Adjust index for placeholders
           placeholders.push(`($${startIndex}, $${startIndex + 1}, $${startIndex + 2}, 
                               $${startIndex + 3}, $${startIndex + 4}, $${startIndex + 5}, 
                               $${startIndex + 6}, $${startIndex + 7}, $${startIndex + 8}, 
-                              $${startIndex + 9})`);
+                              $${startIndex + 9}, $${startIndex + 10})`);
 
           values.push(
             model_id,
@@ -54,13 +74,14 @@ class BimUnitRepository {
             properties,
             class_code,
             m_function,
+            gis_code_express_id,
           );
         });
 
         const sql = `
         INSERT INTO bim_units (
           "modelId", "expressId", parent_express_id, name, ifc_type, description,
-          object_type, properties, class_code, m_function
+          object_type, properties, class_code, m_function, gis_code_express_id
         ) VALUES ${placeholders.join(', ')}`;
 
         handlers.push(client.query(sql, values));

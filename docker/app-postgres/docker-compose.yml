@@ -34,11 +34,11 @@ services:
     networks:
       - nocobase
   bim-backend:
-    build: 
+    build:
       dockerfile: ./../../bim-backend/Dockerfile
     deploy:
       mode: replicated
-      replicas: 6
+      replicas: 1
     networks:
       - nocobase
     volumes:
