@@ -61,27 +61,26 @@ class BimUnitRepository {
           placeholders.push(`($${startIndex}, $${startIndex + 1}, $${startIndex + 2}, 
                               $${startIndex + 3}, $${startIndex + 4}, $${startIndex + 5}, 
                               $${startIndex + 6}, $${startIndex + 7}, $${startIndex + 8}, 
-                              $${startIndex + 9}, $${startIndex + 10})`);
+                              $${startIndex + 9})`);
 
           values.push(
             model_id,
-            express_id,
-            parent_express_id,
-            name,
-            ifc_type,
-            description,
-            object_type,
-            properties,
-            class_code,
-            m_function,
-            gis_code_express_id,
+            express_id ?? 'NULL',
+            parent_express_id ?? 'NULL',
+            name ?? 'NULL',
+            ifc_type ?? 'NULL',
+            description ?? 'NULL',
+            object_type ?? 'NULL',
+            properties ?? 'NULL',
+            class_code ?? 'NULL',
+            m_function ?? 'NULL',
           );
         });
 
         const sql = `
         INSERT INTO bim_units (
           "modelId", "expressId", parent_express_id, name, ifc_type, description,
-          object_type, properties, class_code, m_function, gis_code_express_id
+          object_type, properties, class_code, m_function
         ) VALUES ${placeholders.join(', ')}`;
 
         handlers.push(client.query(sql, values));
