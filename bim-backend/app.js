@@ -20,6 +20,11 @@ module.exports = async function (fastify, opts) {
     connectionString: 'postgres://nocobase:nocobase@postgres/BIM_KIEN_GIANG',
   });
 
+  fastify.register(require('@fastify/postgres'), {
+    name: 'BIM_BAN2',
+    connectionString: 'postgres://nocobase:nocobase@postgres/BIM_BAN2',
+  });
+
   // Load Ifc module
   fastify.register(require('./modules/ifc/routes/index.routes'), { prefix: '/ifc' });
 
