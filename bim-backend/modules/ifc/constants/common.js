@@ -1,0 +1,8 @@
+const BIM_MODEL_STATUS = {
+    STEP_1_ANALYSIS: 1,
+    STEP_2_MODEL_CREATING: 2,
+    STEP_3_MODEL_SUCCESS: 3,
+    STEP_3_MODEL_ERROR: 4
+}
+
+module.exports = {BIM_MODEL_STATUS}

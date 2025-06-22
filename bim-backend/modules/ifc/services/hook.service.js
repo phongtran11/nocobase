@@ -1,6 +1,9 @@
 const { IFCExtractorHelper } = require('../helpers/ifc_extractor.helper');
 const { IFCTilerHelper } = require('../helpers/ifc_tiler.helper');
 
+const {BimModelRepository} = require('./../repositories/bim_model.repository');
+const {BIM_MODEL_STATUS} = require('./../constants/common');
+
 class HookService {
   /**
    *
@@ -13,6 +16,8 @@ class HookService {
       path: ifcModelData?.file_model[0].url,
       modelId: ifcModelData.id,
     };
+    // Update status
+    await BimModelRepository.updateModelStatus(ifcModelData.id, BIM_MODEL_STATUS.STEP_1_ANALYSIS);
     // Execute tiling
     const ifcTilerHelper = new IFCTilerHelper(fileData);
     const ifcExtractor = new IFCExtractorHelper(fileData, source);

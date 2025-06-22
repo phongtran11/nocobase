@@ -3,6 +3,8 @@ const WEBIFC = require('web-ifc');
 const fs = require('fs');
 const path = require('path');
 const logger = require('@cores/logger');
+const {BimModelRepository} = require('./../repositories/bim_model.repository');
+const {BIM_MODEL_STATUS} = require('./../constants/common');
 
 class IFCTilerHelper {
   components = null;
@@ -117,8 +119,14 @@ class IFCTilerHelper {
   }
 
   async tiling() {
-    await this.readFile();
-    await this.executeTiling();
+    try {
+      await this.readFile();
+      await this.executeTiling();
+      await BimModelRepository.updateModelStatus(this.fileData.modelId, BIM_MODEL_STATUS.STEP_3_MODEL_SUCCESS)
+    } catch (ex) {
+      logger.error(ex);
+      await BimModelRepository.updateModelStatus(this.fileData.modelId, BIM_MODEL_STATUS.STEP_3_MODEL_ERROR);
+    }
   }
 }
 
