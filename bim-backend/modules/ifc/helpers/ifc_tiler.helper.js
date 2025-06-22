@@ -16,7 +16,8 @@ class IFCTilerHelper {
    *
    * @param {*} fileData {name, path}
    */
-  constructor(fileData) {
+  constructor(fileData, source) {
+    this.source = source;
     this.fileData = fileData;
     this.initFileData();
     this.initComponents();
@@ -122,10 +123,10 @@ class IFCTilerHelper {
     try {
       await this.readFile();
       await this.executeTiling();
-      await BimModelRepository.updateModelStatus(this.fileData.modelId, BIM_MODEL_STATUS.STEP_3_MODEL_SUCCESS)
+      await BimModelRepository.updateModelStatus(this.source, this.fileData.modelId, BIM_MODEL_STATUS.STEP_3_MODEL_SUCCESS)
     } catch (ex) {
       logger.error(ex);
-      await BimModelRepository.updateModelStatus(this.fileData.modelId, BIM_MODEL_STATUS.STEP_3_MODEL_ERROR);
+      await BimModelRepository.updateModelStatus(this.source, this.fileData.modelId, BIM_MODEL_STATUS.STEP_3_MODEL_ERROR);
     }
   }
 }

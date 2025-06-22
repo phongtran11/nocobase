@@ -17,9 +17,9 @@ class HookService {
       modelId: ifcModelData.id,
     };
     // Update status
-    await BimModelRepository.updateModelStatus(ifcModelData.id, BIM_MODEL_STATUS.STEP_1_ANALYSIS);
+    await BimModelRepository.updateModelStatus(source, ifcModelData.id, BIM_MODEL_STATUS.STEP_1_ANALYSIS);
     // Execute tiling
-    const ifcTilerHelper = new IFCTilerHelper(fileData);
+    const ifcTilerHelper = new IFCTilerHelper(fileData, source);
     const ifcExtractor = new IFCExtractorHelper(fileData, source);
 
     // Execute props extractor
