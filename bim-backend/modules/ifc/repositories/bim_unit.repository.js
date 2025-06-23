@@ -37,56 +37,68 @@ class BimUnitRepository {
 
     return await fastify.pg[source].transact(async (client) => {
       const handlers = [];
-      for (const batch of batches) {
-        const values = [];
-        const placeholders = [];
+      let modelId = batch?.length ? batch[0]['model_id'] : null;
+      try {
+        if (!modelId) {
+          return;
+        }
+        await client.query(`UPDATE bim_models set status = 2 where id = ${modelId};`)
 
-        batch.forEach((item, index) => {
-          const {
-            model_id,
-            express_id,
-            parent_express_id,
-            name,
-            ifc_type,
-            description,
-            object_type,
-            properties,
-            class_code,
-            m_function,
-          } = item;
+        for (const batch of batches) {
+          const values = [];
+          const placeholders = [];
 
-          const gis_code_express_id = findGisCodeExpressId(properties);
+          batch.forEach((item, index) => {
+            const {
+              model_id,
+              express_id,
+              parent_express_id,
+              name,
+              ifc_type,
+              description,
+              object_type,
+              properties,
+              class_code,
+              m_function,
+            } = item;
 
-          const startIndex = index * 10 + 1; // Adjust index for placeholders
-          placeholders.push(`($${startIndex}, $${startIndex + 1}, $${startIndex + 2}, 
+            const gis_code_express_id = findGisCodeExpressId(properties);
+
+            const startIndex = index * 10 + 1; // Adjust index for placeholders
+            placeholders.push(`($${startIndex}, $${startIndex + 1}, $${startIndex + 2}, 
                               $${startIndex + 3}, $${startIndex + 4}, $${startIndex + 5}, 
                               $${startIndex + 6}, $${startIndex + 7}, $${startIndex + 8}, 
                               $${startIndex + 9})`);
 
-          values.push(
-            model_id,
-            express_id ?? 'NULL',
-            parent_express_id ?? 'NULL',
-            name ?? 'NULL',
-            ifc_type ?? 'NULL',
-            description ?? 'NULL',
-            object_type ?? 'NULL',
-            properties ?? 'NULL',
-            class_code ?? 'NULL',
-            m_function ?? 'NULL',
-          );
-        });
+            values.push(
+              model_id,
+              express_id ?? 'NULL',
+              parent_express_id ?? 'NULL',
+              name ?? 'NULL',
+              ifc_type ?? 'NULL',
+              description ?? 'NULL',
+              object_type ?? 'NULL',
+              properties ?? 'NULL',
+              class_code ?? 'NULL',
+              m_function ?? 'NULL',
+            );
+          });
 
-        const sql = `
+          const sql = `
         INSERT INTO bim_units (
           "modelId", "expressId", parent_express_id, name, ifc_type, description,
           object_type, properties, class_code, m_function
         ) VALUES ${placeholders.join(', ')}`;
 
-        console.log(sql);
-        handlers.push(client.query(sql, values));
+          console.log(sql);
+          handlers.push(client.query(sql, values));
+        }
+        await Promise.all(handlers);
+        await client.query(`UPDATE bim_models set status = 3 where id = ${modelId};`);
+      } catch (ex) {
+        console.log(ex);
+        await client.query(`UPDATE bim_models set status = 4 where id = ${modelId};`);
       }
-      await Promise.all(handlers);
     });
   }
 }
