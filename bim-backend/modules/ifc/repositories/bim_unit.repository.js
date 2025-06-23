@@ -67,6 +67,10 @@ class BimUnitRepository {
 
             const gis_code_express_id = findGisCodeExpressId(properties);
 
+            if (isNaN(express_id)) {
+              return;
+            }
+
             const startIndex = index * 10 + 1; // Adjust index for placeholders
             placeholders.push(`($${startIndex}, $${startIndex + 1}, $${startIndex + 2}, 
                               $${startIndex + 3}, $${startIndex + 4}, $${startIndex + 5}, 
@@ -76,7 +80,7 @@ class BimUnitRepository {
             values.push(
               model_id,
               express_id ?? 'NULL',
-              parent_express_id ?? 'NULL',
+              parent_express_id ?? '0',
               name ?? 'NULL',
               ifc_type ?? 'NULL',
               description ?? 'NULL',
@@ -94,6 +98,7 @@ class BimUnitRepository {
         ) VALUES ${placeholders.join(', ')}`;
 
           console.log(sql);
+          console.log(values);
           await client.query(sql, values);
         }
         await client.query(`UPDATE bim_models set status = 3 where id = ${modelId};`);
