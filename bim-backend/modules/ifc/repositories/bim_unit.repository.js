@@ -36,7 +36,6 @@ class BimUnitRepository {
     }
 
     return await fastify.pg[source].transact(async (client) => {
-      const handlers = [];
       let modelId = null;
       if (batches.length) {
         const batch = batches[0];
@@ -95,9 +94,8 @@ class BimUnitRepository {
         ) VALUES ${placeholders.join(', ')}`;
 
           console.log(sql);
-          handlers.push(client.query(sql, values));
+          await client.query(sql, values);
         }
-        await Promise.all(handlers);
         await client.query(`UPDATE bim_models set status = 3 where id = ${modelId};`);
       } catch (ex) {
         console.log(ex);
