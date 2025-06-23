@@ -87,20 +87,16 @@ class IFCExtractorHelper {
     const ifcPropsManager = this.ctx.ifcPropsManager;
     const modelID = this.ctx.ifcModelId;
 
-    console.log('ifcPropsManager.getTypeProperties - Start');
     let [typeprops, propsets] = await Promise.all([
       ifcPropsManager.getTypeProperties(modelID, root.expressID, true),
       ifcPropsManager.getPropertySets(modelID, root.expressID, true),
     ]);
-    console.log('ifcPropsManager.getTypeProperties - Complete');
 
     const { gisCode, mFunction } = this.readGroupPropertySets(props, propsets);
 
-    console.log('readGroupPropertySets - Start');
     typeprops.forEach((typeprop) => {
       this.readGroupPropertySets(props, typeprop.HasPropertySets);
     });
-    console.log('readGroupPropertySets - Completed');
 
     const data = {
       model_id: this.fileData.modelId,
@@ -119,12 +115,18 @@ class IFCExtractorHelper {
 
     if (root.children && root.children.length > 0) {
       console.log(`readIfcUnitsAndBuildProps - Child Length:${root.children.length}`);
-      const handlers = [];
+      let handlers = [];
       for (let i = 0; i < root.children.length; i++) {
         //await this.readIfcUnitsAndBuildProps(root.children[i], root);
         handlers.push(this.readIfcUnitsAndBuildProps(root.children[i], root, deep + 1));
+        if (handlers.length > 20) {
+          console.log(`readIfcUnitsAndBuildProps - Child ${i} - Start`);
+          await Promise.all(handlers);
+          handlers = [];
+          console.log(`readIfcUnitsAndBuildProps - Child ${i} - Completed`);
+        }
       }
-      await Promise.all(handlers);
+      
     }
   }
 }
