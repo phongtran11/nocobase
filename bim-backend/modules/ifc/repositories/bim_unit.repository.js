@@ -37,7 +37,11 @@ class BimUnitRepository {
 
     return await fastify.pg[source].transact(async (client) => {
       const handlers = [];
-      let modelId = batch?.length ? batch[0]['model_id'] : null;
+      let modelId = null;
+      if (batches.length) {
+        const batch = batches[0];
+        modelId = batch?.length ? batch[0]['model_id'] : null;
+      }
       try {
         if (!modelId) {
           return;
