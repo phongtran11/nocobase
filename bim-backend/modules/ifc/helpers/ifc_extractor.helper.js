@@ -119,11 +119,11 @@ class IFCExtractorHelper {
       for (let i = 0; i < root.children.length; i++) {
         //await this.readIfcUnitsAndBuildProps(root.children[i], root);
         handlers.push(this.readIfcUnitsAndBuildProps(root.children[i], root, deep + 1));
-        if (handlers.length > 20) {
-          console.log(`readIfcUnitsAndBuildProps - Child ${i} - Start`);
+        if (handlers.length > 100) {
+          console.log(`readIfcUnitsAndBuildProps - Child ${i}/${root.children.length} - Start`);
           await Promise.all(handlers);
           handlers = [];
-          console.log(`readIfcUnitsAndBuildProps - Child ${i} - Completed`);
+          console.log(`readIfcUnitsAndBuildProps - Child ${i}/${root.children.length} - Completed`);
         }
       }
       
