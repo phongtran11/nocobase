@@ -81,7 +81,8 @@ class IFCExtractorHelper {
     return { gisCode, mFunction };
   }
 
-  async readIfcUnitsAndBuildProps(root, parent) {
+  async readIfcUnitsAndBuildProps(root, parent, deep = 0) {
+    if (deep > 20) return;
     const props = {};
     const ifcPropsManager = this.ctx.ifcPropsManager;
     const modelID = this.ctx.ifcModelId;
@@ -116,7 +117,7 @@ class IFCExtractorHelper {
       const handlers = [];
       for (let i = 0; i < root.children.length; i++) {
         //await this.readIfcUnitsAndBuildProps(root.children[i], root);
-        handlers.push(this.readIfcUnitsAndBuildProps(root.children[i], root));
+        handlers.push(this.readIfcUnitsAndBuildProps(root.children[i], root, deep + 1));
       }
       await Promise.all(handlers);
     }
